@@ -5,10 +5,11 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"regexp"
 )
 
-var templates = template.Must(template.ParseFiles("edit.html", "view.html"))
+var templates = template.Must(template.ParseFiles("templates/edit.html", "templates/view.html"))
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 
 // Page represents a wiki article.
@@ -17,13 +18,17 @@ type Page struct {
 	Body  []byte
 }
 
+func pagePath(title string) string {
+	return filepath.Join("data", title+".txt")
+}
+
 func (p *Page) save() error {
-	filename := p.Title + ".txt"
+	filename := pagePath(p.Title)
 	return ioutil.WriteFile(filename, p.Body, 0600)
 }
 
 func loadPage(title string) (*Page, error) {
-	filename := title + ".txt"
+	filename := pagePath(title)
 	body, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
