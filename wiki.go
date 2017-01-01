@@ -15,7 +15,7 @@ var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
 // Page represents a wiki article.
 type Page struct {
 	Title string
-	Body  []byte
+	Body  string
 }
 
 func pagePath(title string) string {
@@ -24,7 +24,7 @@ func pagePath(title string) string {
 
 func (p *Page) save() error {
 	filename := pagePath(p.Title)
-	return ioutil.WriteFile(filename, p.Body, 0600)
+	return ioutil.WriteFile(filename, []byte(p.Body), 0600)
 }
 
 func loadPage(title string) (*Page, error) {
@@ -33,7 +33,7 @@ func loadPage(title string) (*Page, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Page{Title: title, Body: body}, nil
+	return &Page{Title: title, Body: string(body)}, nil
 }
 
 func getTitle(w http.ResponseWriter, r *http.Request) (string, error) {
@@ -56,7 +56,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request, title string) {
 
 func saveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	body := r.FormValue("body")
-	p := &Page{Title: title, Body: []byte(body)}
+	p := &Page{Title: title, Body: body}
 	err := p.save()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
